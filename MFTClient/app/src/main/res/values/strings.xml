@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MFT</string>
+    <string name="title">Music Files Transfer</string>
+    <string name="action_settings">Settings</string>
+    <string name="start">Start</string>
+    <string name="input_hint">m3u file name</string>
+</resources>
