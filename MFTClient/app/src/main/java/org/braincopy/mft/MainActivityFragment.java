@@ -47,6 +47,23 @@ public class MainActivityFragment extends Fragment {
                 while (client.isAlive()) {
                     if (client.isUpdated()) {
                         status.append(client.getUpdatedStatus());
+                        client.setUpdated(false);
+                    } else if (client.isCompleted()) {
+                        String[] paths = client.getMusicFilesPaths();
+                        if (paths != null) {
+                            MediaScannerConnection.scanFile(getActivity().getApplicationContext(), paths, null, new OnScanCompletedListener() {
+
+                                @Override
+                                public void onScanCompleted(String path, Uri uri) {
+                                    Log.i("mft", path + " scanned");
+                                    //status.append(path+" is scanned.\n");
+                                }
+                            });
+                        } else {
+                            status.append("no music files! Client did not work as we expected.\n");
+                            Log.e("mft", "wired. no music files! Client did not work as we expected.");
+                        }
+                        client.finish();
                     } else {
                         try {
                             Thread.sleep(1000);
@@ -55,6 +72,7 @@ public class MainActivityFragment extends Fragment {
                         }
                     }
                 }
+                /*
                 if (client.isCompleted()) {
                     String[] paths = client.getMusicFilesPaths();
                     if (paths != null) {
@@ -72,7 +90,7 @@ public class MainActivityFragment extends Fragment {
                     }
                 } else {
                     status.append(client.getUpdatedStatus());
-                }
+                }*/
             }
         });
         return rootView;

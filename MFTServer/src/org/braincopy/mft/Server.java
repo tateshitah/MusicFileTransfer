@@ -114,6 +114,7 @@ public class Server {
 					if (getArgs[0].equals("playlist") && getArgs.length > 1) {
 						playlistFile = new File(MUSIC_FOLDER + getArgs[1]);
 						if (playlistFile.exists()) {
+							System.out.println(playlistFile.getName() + " exists!");
 							bufferedReader = new BufferedReader(new FileReader(playlistFile));
 							while ((tempStr = bufferedReader.readLine()) != null) {
 								// if (!tempStr.startsWith("#")) {

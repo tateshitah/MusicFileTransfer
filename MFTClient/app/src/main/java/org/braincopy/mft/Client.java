@@ -85,7 +85,7 @@ public class Client extends Thread {
             musicFolder.mkdirs();
         }
         this.filesPathsForM3U = new ArrayList<String>();
-        this.updatedStatus="";
+        this.updatedStatus = "";
         // this.musicFolder = musicFolder;
     }
 
@@ -103,17 +103,19 @@ public class Client extends Thread {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(
                         inStream));
 
+                setAbsolutePathOfMucisFolderOnServerFromServer();
                 command = "getpath";
                 sendCommand(command);
 
                 //String[] getArgs = command.split(" ");
                 //String buff = null;
 
-                command = "playlist "+this.playListName;
+                command = "playlist " + this.playListName;
                 sendCommand(command);
 
                 if (this.copyTargetFilesPath.size() == 0) {
                     Log.e("mft", "no target music files? wired.");
+                    this.updateStatus("no target music files? wired.\n");
                 } else {
                     startCopy();
                 }
@@ -145,6 +147,11 @@ public class Client extends Thread {
         }
     }
 
+    private void setAbsolutePathOfMucisFolderOnServerFromServer() throws IOException, InterruptedException {
+        //command = "getpath";
+        sendCommand("getpath");
+    }
+
     public boolean isCompleted() {
         return this.isCompleted;
     }
@@ -161,7 +168,7 @@ public class Client extends Thread {
                     new InputStreamReader(inStream));
             // outStream.write(command.getBytes(), 0, command.length());
             outStream.write(command.getBytes());
-            System.out.println("send command: " + command);
+            Log.i("mft", "send command: " + command);
             this.updateStatus("send command: " + command + "\n");
             waitCount = 0;
             while (true) {
@@ -169,7 +176,9 @@ public class Client extends Thread {
                     if (getArgs[0].equals("getpath")) {
                         buff = messageReaderFromServer.readLine();
                         setAbsolutePathOfMusicFolderOnServer(buff);
-                        // System.out.println("#path " + buff);
+                        //Todo why client needs this information, which should be server inside information.
+                        Log.i("mft", "set AbsolutePathOfMusicFolderOnServer: " + buff);
+                        updateStatus("get absolute path info from server: " + buff);
                         break;
                     } else if (getArgs[0].equals("playlist")) {
                         this.playListOnClient = new File(this.BASE_FOLDER + getArgs[1]);
@@ -178,7 +187,7 @@ public class Client extends Thread {
                         String tempFilePath = null;
                         while ((buff = messageReaderFromServer.readLine()) != null) {
                             if (buff.startsWith(absolutePathOfMucisFolderOnServer)) {
-                               // System.out.println("#1 " + buff);
+                                System.out.println("#1 " + buff);
                                 checkAndAddMusicFile(buff);
                                 tempFilePath = buff.substring(absolutePathOfMucisFolderOnServer.length());
                                 playListOS.write((BASE_FOLDER + tempFilePath + "\n").getBytes());
@@ -230,6 +239,8 @@ public class Client extends Thread {
                     waitCount++;
                     try {
                         Thread.sleep(100);
+                        Log.i("mft", "waiting... " + waitCount);
+                        updateStatus("waiting... " + waitCount + "\n");
                     } catch (InterruptedException e) {
                         throw new InterruptedException("timeout process: " + e);
                     }
@@ -281,8 +292,9 @@ public class Client extends Thread {
         }
     }
 
-    private void checkMusicFile(String filePathString) throws IOException,
+    private boolean checkMusicFile(String filePathString) throws IOException,
             InterruptedException {
+        boolean result = false;
         long client, server = Long.MIN_VALUE;
         String serverResponse = null;
         File fileInClient = new File(BASE_FOLDER + filePathString);
@@ -298,7 +310,7 @@ public class Client extends Thread {
                     server = Long.MIN_VALUE;
                 }
             } else {
-                System.err.println("why server response is null? : "
+                Log.e("mft", "why server response is null? : "
                         + filePathString);
             }
             if (client != server) {
@@ -308,12 +320,15 @@ public class Client extends Thread {
             } else {
                 System.out.println("Good! size of Client is: " + client
                         + ", size of Server is: " + server);
+                result = true;
             }
         } catch (IOException e) {
             e.printStackTrace();
             throw new IOException("checking file: " + e);
         }
+        return result;
     }
+
 
     /**
      * @param filePathString should be relative path
@@ -366,28 +381,35 @@ public class Client extends Thread {
 
     }
 
-    private void add(String buff) {
+    private void addCopyTargetFilesPath(String buff) {
         this.copyTargetFilesPath.add(buff);
     }
 
     /**
      * Input String should an absolute file path in Server side. The absolute
-     * path of music folder on server side should be sent by Server side.
+     * path of music folder on server side should be sent by Server side. really?
      *
      * @param buff
      * @return
      */
-    private void checkAndAddMusicFile(String buff) {
+    private void checkAndAddMusicFile(String buff) throws IOException, InterruptedException{
         String filePath = null;
         File copyFile = null;
         filePath = buff.substring(this.absolutePathOfMucisFolderOnServer
                 .length());
         copyFile = new File(BASE_FOLDER + filePath);
-        if (!copyFile.exists()) {
-            this.add(filePath);
+        if (copyFile.exists()) {
+            if (!checkMusicFile(filePath)) {
+                //copyFile.delete();
+                this.addCopyTargetFilesPath(filePath);
+            }
+            //compare the file size.
+        } else {
+            this.addCopyTargetFilesPath(filePath);
         }
 
     }
+
 
     private void setAbsolutePathOfMusicFolderOnServer(String path) {
         this.absolutePathOfMucisFolderOnServer = path;
@@ -421,7 +443,16 @@ public class Client extends Thread {
         }
         return result;
     }
-    public void setRunning(Boolean _running){
+
+    public void setRunning(Boolean _running) {
         this.isRunning = _running;
+    }
+
+    public void setUpdated(boolean updated) {
+        this.updated = updated;
+    }
+
+    public void finish() {
+        setRunning(false);
     }
 }
