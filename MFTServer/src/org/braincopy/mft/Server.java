@@ -37,7 +37,7 @@ import java.net.Socket;
  * for MAC
  * 
  * @author Hiroaki Tateshita
- * @version 0.2.1
+ * @version 0.3.1
  *
  */
 public class Server {
@@ -118,6 +118,9 @@ public class Server {
 							bufferedReader = new BufferedReader(new FileReader(playlistFile));
 							while ((tempStr = bufferedReader.readLine()) != null) {
 								// if (!tempStr.startsWith("#")) {
+								if (tempStr.startsWith(MUSIC_FOLDER)) {
+									tempStr = tempStr.substring(MUSIC_FOLDER.length());
+								}
 								outStream.write(tempStr.getBytes());
 								outStream.write("\n".getBytes());
 								System.out.println("send to client: " + tempStr);
@@ -133,7 +136,7 @@ public class Server {
 					}
 					// getpath
 					if (getArgs[0].equals("getpath")) {
-						outStream.write(MUSIC_FOLDER.getBytes());
+						// outStream.write(MUSIC_FOLDER.getBytes());
 						outStream.write("\n".getBytes());
 					}
 

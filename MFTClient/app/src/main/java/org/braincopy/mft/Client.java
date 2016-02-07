@@ -43,7 +43,7 @@ import java.util.ArrayList;
  * This client program will get music files from server.
  *
  * @author Hiroaki Tateshita
- * @version 0.0.1
+ * @version 0.0.2
  */
 public class Client extends Thread {
     public static final int INPUT_STREAM_BUFFER = 512;
@@ -103,9 +103,9 @@ public class Client extends Thread {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(
                         inStream));
 
-                setAbsolutePathOfMucisFolderOnServerFromServer();
-                command = "getpath";
-                sendCommand(command);
+             //   setAbsolutePathOfMucisFolderOnServerFromServer();
+               // command = "getpath";
+                //sendCommand(command);
 
                 //String[] getArgs = command.split(" ");
                 //String buff = null;
@@ -147,10 +147,10 @@ public class Client extends Thread {
         }
     }
 
-    private void setAbsolutePathOfMucisFolderOnServerFromServer() throws IOException, InterruptedException {
-        //command = "getpath";
-        sendCommand("getpath");
-    }
+//    private void setAbsolutePathOfMucisFolderOnServerFromServer() throws IOException, InterruptedException {
+  //      //command = "getpath";
+    //    sendCommand("getpath");
+    //}
 
     public boolean isCompleted() {
         return this.isCompleted;
@@ -175,7 +175,7 @@ public class Client extends Thread {
                 if (inStream.available() > 0) {
                     if (getArgs[0].equals("getpath")) {
                         buff = messageReaderFromServer.readLine();
-                        setAbsolutePathOfMusicFolderOnServer(buff);
+                        //setAbsolutePathOfMusicFolderOnServer(buff);
                         //Todo why client needs this information, which should be server inside information.
                         Log.i("mft", "set AbsolutePathOfMusicFolderOnServer: " + buff);
                         updateStatus("get absolute path info from server: " + buff);
@@ -186,10 +186,12 @@ public class Client extends Thread {
                         //OutputStreamWriter writer = new OutputStreamWriter(playListOS,"UTF-8");
                         String tempFilePath = null;
                         while ((buff = messageReaderFromServer.readLine()) != null) {
-                            if (buff.startsWith(absolutePathOfMucisFolderOnServer)) {
-                                System.out.println("#1 " + buff);
+                            //if (buff.startsWith(absolutePathOfMucisFolderOnServer)) {
+                            if (!buff.startsWith("#")) {
+                                Log.i("mft", "playlist: " + buff);
                                 checkAndAddMusicFile(buff);
-                                tempFilePath = buff.substring(absolutePathOfMucisFolderOnServer.length());
+                                //tempFilePath = buff.substring(absolutePathOfMucisFolderOnServer.length());
+                                tempFilePath = buff;
                                 playListOS.write((BASE_FOLDER + tempFilePath + "\n").getBytes());
                                 //writer.write(BASE_FOLDER + tempFilePath + "\n");
                                 this.filesPathsForM3U.add(BASE_FOLDER + tempFilePath);
@@ -227,7 +229,7 @@ public class Client extends Thread {
                                     throw new InterruptedException("trying to sleep: "
                                             + e.getMessage());
                                 }
-                                if (waitCount > 100)
+                                if (waitCount > 10)
                                     break;
                             }
                         }
@@ -237,10 +239,10 @@ public class Client extends Thread {
                 // タイムアウト処理
                 else {
                     waitCount++;
-                    try {
-                        Thread.sleep(100);
+                        try {
+                            Thread.sleep(100);
                         Log.i("mft", "waiting... " + waitCount);
-                        updateStatus("waiting... " + waitCount + "\n");
+                        //updateStatus("waiting... " + waitCount + "\n");
                     } catch (InterruptedException e) {
                         throw new InterruptedException("timeout process: " + e);
                     }
@@ -395,8 +397,9 @@ public class Client extends Thread {
     private void checkAndAddMusicFile(String buff) throws IOException, InterruptedException{
         String filePath = null;
         File copyFile = null;
-        filePath = buff.substring(this.absolutePathOfMucisFolderOnServer
-                .length());
+//        filePath = buff.substring(this.absolutePathOfMucisFolderOnServer
+  //              .length());
+        filePath = buff;
         copyFile = new File(BASE_FOLDER + filePath);
         if (copyFile.exists()) {
             if (!checkMusicFile(filePath)) {
@@ -411,9 +414,9 @@ public class Client extends Thread {
     }
 
 
-    private void setAbsolutePathOfMusicFolderOnServer(String path) {
-        this.absolutePathOfMucisFolderOnServer = path;
-    }
+ //   private void setAbsolutePathOfMusicFolderOnServer(String path) {
+   //     this.absolutePathOfMucisFolderOnServer = path;
+    //}
 
     public String getHostname() {
         return hostname;
