@@ -92,8 +92,10 @@ public class Server {
 			if (sock == null || sock.isClosed()) {
 				try {
 					// this is socket between client and server.
+					// by using accept() method, server waits client connection.
 					// when the client connects, this socket will be activated.
 					sock = servSock.accept();
+					System.out.println("connection established from: " + sock.getInetAddress().getHostName());
 					outStream = sock.getOutputStream();
 					inStream = sock.getInputStream();
 				} catch (IOException e) {
@@ -110,6 +112,11 @@ public class Server {
 
 					String[] getArgs = buff.split("\\s");
 
+					// in case of greeting
+					if (getArgs[0].startsWith("hello")) {
+						outStream.write("hello friend!".getBytes());
+						outStream.write("\n".getBytes());
+					}
 					// in case of list playlistName
 					if (getArgs[0].equals("playlist") && getArgs.length > 1) {
 						playlistFile = new File(MUSIC_FOLDER + getArgs[1]);
@@ -126,7 +133,7 @@ public class Server {
 								System.out.println("send to client: " + tempStr);
 								// }
 							}
-							outStream.write(("playlist: " + getArgs[1]).getBytes());
+							outStream.write("end of playlist".getBytes());
 							outStream.write("\n".getBytes());
 
 						} else {
@@ -142,7 +149,8 @@ public class Server {
 
 					// getsize
 					if (getArgs[0].equals("getsize")) {
-						getArgs[1] = buff.substring("getsize ".length());
+						// delete "¥n" of last charactor of buff as a file name.
+						getArgs[1] = buff.substring("getsize ".length(), buff.length() - 1);
 						String fileName = MUSIC_FOLDER + getArgs[1];
 						String temp = null;
 						File fileInServer = new File(fileName);
@@ -151,6 +159,9 @@ public class Server {
 							outStream.write(temp.getBytes());
 							outStream.write("\n".getBytes());
 							System.out.println("#3 size of " + fileName + " is: " + temp);
+						} else {
+							System.err.println("not exist: " + fileName);
+							outStream.write("no file\n".getBytes());
 						}
 					}
 
@@ -174,7 +185,7 @@ public class Server {
 						while ((fileLength = fileInStream.read(fileBuff)) != -1) {
 							i++;
 							outStream.write(fileBuff, 0, fileLength);
-							if (i % 20 == 0) {
+							if (i % 200 == 0) {
 								System.out.print(".");
 							}
 						}
@@ -195,7 +206,7 @@ public class Server {
 			} catch (IOException e) {
 				System.err.println("something related to I/O happened.");
 				e.printStackTrace();
-				// System.exit(0);
+				System.exit(0);
 			}
 
 		}
