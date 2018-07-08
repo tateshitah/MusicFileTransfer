@@ -76,6 +76,7 @@ public class Client extends Thread {
     private String playListName = "gesuotome.m3u";
     private int totalTarget;
     private int target;
+    private int successfulCopy;
 
     Client() {
         this.copyTargetFilesPath = new ArrayList<String>();
@@ -89,6 +90,7 @@ public class Client extends Thread {
         }
         this.filesPathsForM3U = new ArrayList<String>();
         this.updatedStatus = "";
+        this.successfulCopy = 0;
         // this.musicFolder = musicFolder;
     }
 
@@ -157,6 +159,7 @@ public class Client extends Thread {
     private void showStatistic() {
         Log.i("mft","total target: "+this.totalTarget);
         Log.i("mft","target: "+this.target);
+        Log.i("mft","successful copy: "+this.successfulCopy);
     }
 
     private void checkAllMusicFile() throws IOException, InterruptedException {
@@ -339,7 +342,9 @@ public class Client extends Thread {
         for (int i = 0; i < this.copyTargetFilesPath.size(); i++) {
             getMusicFile(this.copyTargetFilesPath.get(i));
             //sendCommand("get " + this.copyTargetFilesPath.get(i));
-            checkMusicFile(this.copyTargetFilesPath.get(i));
+            if(checkMusicFile(this.copyTargetFilesPath.get(i))){
+                this.successfulCopy++;
+            }
         }
     }
 
